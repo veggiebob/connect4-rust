@@ -196,7 +196,8 @@ impl Display for Board {
             "{}",
             matrix_to_string(
                 &pretty,
-                None
+                None,
+                true
             )
         )
     }

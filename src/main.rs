@@ -12,6 +12,7 @@ mod util;
 const TWO_PLAYER: bool = false;       // whether or not the game is two player
 const NUM_TEST_GAMES: usize = 50_000; // bigger => longer, better. smaller => shorter, less accurate
 
+/// Get the next turn
 fn next_turn(team: Team) -> Team {
     match team  {
         TEAM_O => TEAM_X,
@@ -20,7 +21,7 @@ fn next_turn(team: Team) -> Team {
     }
 }
 
-// in-place DFS with a number of end configurations that are limited
+/// in-place DFS with a number of end configurations that are limited
 pub fn limited_dfs(board: &mut Board, turn: Team, num_left: &mut usize, rng: &mut ThreadRng) {
     if *num_left <= 0 {
         return;
@@ -54,7 +55,7 @@ pub fn limited_dfs(board: &mut Board, turn: Team, num_left: &mut usize, rng: &mu
 
 type GameResult = Team;
 
-//
+/// play a random game
 pub fn play_random_game(board: &Board, turn: Team, rng: &mut ThreadRng) -> GameResult {
     let mut board = board.clone();
     let mut turn = turn;
@@ -72,7 +73,7 @@ pub fn play_random_game(board: &Board, turn: Team, rng: &mut ThreadRng) -> GameR
     }
 }
 
-//
+// Run monte carlo simulation to determine best move
 pub fn recommend_best_move(board: &mut Board, turn: Team, num_test_games: usize) -> usize {
     let moves = board.valid_choices();
     let mut outcomes = vec![];
@@ -123,13 +124,14 @@ pub fn recommend_best_move(board: &mut Board, turn: Team, num_test_games: usize)
     }
 }
 
+/// Get input from the user
 fn input() -> String {
     let mut s = String::new();
     io::stdin().read_line(&mut s).unwrap();
     s
 }
-fn main() {
 
+fn main() {
     let mut board = Board::init_empty();
     let mut turn = TEAM_X;
     if !TWO_PLAYER {
