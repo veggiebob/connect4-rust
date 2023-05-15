@@ -153,6 +153,11 @@ fn main() {
                 match user_input.trim().parse::<usize>() {
                     Ok(num) => {
                         println!("You chose {}", num);
+                        if num >= BOARD_COLS || num < 0 {
+                            println!("Danny, you're gayyyy?!!??! My son is a fudge packer! What about the church?! You're gonna rot in hell for this >:( \
+                                To not rot in hell, pick a number 0 - 6! ");
+                            continue;
+                        }
                         match board.drop(num, turn) {
                             Ok(_) => break,
                             Err(e) => println!("Can't drop there. Pick somewhere else.")
