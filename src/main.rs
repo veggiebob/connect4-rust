@@ -162,9 +162,25 @@ fn single_turn() -> Result<(), ()> {
     }
     let string = string.trim().to_string();
     let mut board = Board::parse(&string);
+
+    // check and see if anyone has already won
+    if let Some((p1, p2, team)) = board.won() {
+        println!("x,y,team");
+        println!("{},{},{}", p1.0, p1.1, team_to_char(team));
+        println!("{},{},{}", p2.0, p2.1, team_to_char(team));
+        return Ok(());
+    }
     let choice = recommend_best_move(&mut board, TEAM_O, NUM_TEST_GAMES);
     board.drop(choice, TEAM_O).unwrap();
-    println!("{}", board.serialize());
+
+    // check and see if the AI just won
+    if let Some((p1, p2, team)) = board.won() {
+        println!("x,y,team");
+        println!("{},{},{}", p1.0, p1.1, team_to_char(team));
+        println!("{},{},{}", p2.0, p2.1, team_to_char(team));
+        return Ok(());
+    }
+    println!("---\n{}", board.serialize());
     Ok(())
 }
 
