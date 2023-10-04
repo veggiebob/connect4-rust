@@ -3,11 +3,14 @@ use std::fmt::Display;
 use std::{io, thread};
 use std::sync::Arc;
 use std::sync::mpsc::Sender;
-use crate::connect4board::{Board, BOARD_COLS, EMPTY, Team, TEAM_O, team_to_char, TEAM_X};
+use crate::connect4board::{Board, BOARD_COLS, BOARD_ROWS, EMPTY, Team, TEAM_O, team_to_char, TEAM_X};
 use rand::prelude::*;
 
 mod connect4board;
 mod util;
+
+#[cfg(test)]
+mod test;
 
 const TWO_PLAYER: bool = false;       // whether or not the game is two player
 const NUM_TEST_GAMES: usize = 50_000; // bigger => longer, better. smaller => shorter, less accurate
@@ -131,7 +134,41 @@ fn input() -> String {
     s
 }
 
-fn main() {
+fn main() -> Result<(), ()> {
+    // get command line arguments
+    let args: Vec<String> = std::env::args().collect();
+    return if let Some(arg) = args.get(1) {
+        if arg == "single-turn" {
+            single_turn()
+        } else {
+            eprintln!("Unknown argument {}", arg);
+            Err(())
+        }
+    } else {
+        interactive();
+        Ok(())
+    }
+}
+
+/// this is for api calls, so we always assume the user is X
+/// and the AI player is O
+fn single_turn() -> Result<(), ()> {
+    // read BOARD_ROWS lines of BOARD_COLS characters
+    let mut string = String::new();
+    for _ in 0..BOARD_ROWS {
+        let mut line = String::new();
+        io::stdin().read_line(&mut line).unwrap();
+        string += &line;
+    }
+    let string = string.trim().to_string();
+    let mut board = Board::parse(&string);
+    let choice = recommend_best_move(&mut board, TEAM_O, NUM_TEST_GAMES);
+    board.drop(choice, TEAM_O).unwrap();
+    println!("{}", board.serialize());
+    Ok(())
+}
+
+fn interactive() {
     let mut board = Board::init_empty();
     let mut turn = TEAM_X;
     if !TWO_PLAYER {

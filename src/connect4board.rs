@@ -19,7 +19,7 @@ pub enum Error {
 pub type Connect4Result<T> = Result<T, Error>;
 
 // note: top row (row 0) represents the top of the physical board
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Board {
     pub mat: [[u8; BOARD_COLS]; BOARD_ROWS],
     pub next_empty_spot: [isize; BOARD_COLS],
@@ -31,6 +31,19 @@ impl Board {
             mat: [[0; BOARD_COLS]; BOARD_ROWS],
             next_empty_spot: [(BOARD_ROWS - 1) as isize; BOARD_COLS],
         }
+    }
+
+    pub fn from_matrix(mat: [[u8; BOARD_COLS]; BOARD_ROWS]) -> Board {
+        let mut board = Board::init_empty();
+        for (i, row) in mat.iter().enumerate().rev() {
+            for (j, col) in row.iter().enumerate() {
+                if (*col) == EMPTY {
+                    continue;
+                }
+                board.drop(j, *col).unwrap();
+            }
+        }
+        board
     }
 
     pub fn is_full(&self) -> bool {
@@ -173,6 +186,31 @@ impl Board {
         }
         None
     }
+
+    pub fn serialize(&self) -> String {
+        let mut s = "".to_string();
+        for row in self.mat.iter() {
+            for col in row.iter() {
+                s += &format!("{}", team_to_char(*col));
+            }
+            s += "\n";
+        }
+        s
+    }
+
+    pub fn parse(board: &String) -> Board {
+        let mut mat = [[0; BOARD_COLS]; BOARD_ROWS];
+        let lines = board.split("\n").collect::<Vec<_>>();
+        for (i, line) in lines.iter().enumerate() {
+            if i >= BOARD_ROWS {
+                break;
+            }
+            for (j, c) in line.trim().chars().enumerate() {
+                mat[i][j] = char_to_team(c);
+            }
+        }
+        Board::from_matrix(mat)
+    }
 }
 
 pub fn team_to_char(team: Team) -> char {
@@ -181,6 +219,15 @@ pub fn team_to_char(team: Team) -> char {
         TEAM_O => 'O',
         TEAM_X => 'X',
         _ => '?'
+    }
+}
+
+pub fn char_to_team(c: char) -> Team {
+    match c {
+        '_' => EMPTY,
+        'O' => TEAM_O,
+        'X' => TEAM_X,
+        _ => panic!("not a team! {}", c)
     }
 }
 
@@ -200,5 +247,12 @@ impl Display for Board {
                 true
             )
         )
+    }
+}
+
+impl Eq for Board {}
+impl PartialEq for Board {
+    fn eq(&self, other: &Self) -> bool {
+        self.mat == other.mat
     }
 }
